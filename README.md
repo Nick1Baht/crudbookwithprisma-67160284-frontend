@@ -481,6 +481,36 @@ export function saveBook(values: BookFormValues, id?: number): Promise<Book> {
 
 ระบบ “หนังสือ + สินค้า” ต้องเพิ่ม **API `/products` และหน้า `/products`** โดยยังเก็บ `/books` ไว้ ทำตาม [คู่มือเพิ่ม CRUD สินค้าครบชุด](docs/add-second-crud.md) มี schema, Controller, Service, Module และหน้าเว็บเพิ่ม/ดู/แก้/ลบได้จริง พร้อมเมนูและแนวทางเพิ่มรายละเอียด
 
+### คำสั่งสร้าง Controller, Service, DTO และ Entity อัตโนมัติ
+
+รันใน **โฟลเดอร์ Backend ที่ติดตั้ง dependencies ด้วย npm ci แล้ว** ไม่ใช่ Frontend ใช้ Nest CLI ของโปรเจกต์ผ่าน npx ได้ ไม่ต้องติดตั้ง global
+
+ทดลองดูรายการไฟล์ก่อนโดยไม่สร้างจริง:
+
+```powershell
+npx nest g resource product --type rest --crud --no-spec --dry-run
+```
+
+เมื่อต้องการสร้างจริง ใช้คำสั่งเดียวกันแต่เอา `--dry-run` ออก:
+
+```powershell
+npx nest g resource product --type rest --crud --no-spec
+```
+
+จะได้ Controller, Service, Module, DTO เพิ่ม/แก้ไข และ `src/product/entities/product.entity.ts` พร้อมลงทะเบียน ProductModule ใน AppModule ของโครง Backend นี้ ถ้าสร้าง product ด้วยมือไปแล้วไม่ต้องรันสร้างซ้ำ ใช้ชื่อใหม่หรือแก้ไฟล์เดิม
+
+ถ้าต้องการ **เฉพาะ Entity class** และยังไม่มีไฟล์นั้น:
+
+```powershell
+npx nest g class product/entities/product.entity --flat --no-spec
+```
+
+`g` ย่อจาก generate, `--type rest` เลือก REST API, `--crud` สร้างโครงเมธอด CRUD, `--no-spec` ไม่สร้างไฟล์ทดสอบอัตโนมัติ ส่วน `--flat` ของคำสั่ง class ป้องกันการซ้อนโฟลเดอร์เพิ่ม ถ้า PowerShell บล็อกเปลี่ยน npx เป็น npx.cmd
+
+**Entity class ไม่ใช่ตาราง DB ของ Prisma** โปรเจกต์นี้ใช้ `model Product` ใน `prisma/schema.prisma` กำหนดตาราง ต้องเพิ่ม model แล้ว generate/push ตามคู่มือ และแก้ service ที่ CLI สร้างให้ใช้ Prisma จริง โค้ดเริ่มต้นจาก CLI ยังเป็นข้อความตัวอย่าง ไม่ได้บันทึกข้อมูล และไม่สร้างหน้า Frontend ให้
+
+ดู [รายละเอียดไฟล์ที่ได้และวิธีต่อกับตัวอย่างในคู่มือ](docs/add-second-crud.md#ใช้-nest-cli-สร้างโครงอัตโนมัติ) ก่อนเลือกว่าจะสร้างด้วย CLI หรือสร้างไฟล์ตามตัวอย่างด้วยมือ
+
 `app/books/layout.tsx` ใช้เฉพาะ URL ใต้ `/books` การสร้าง `app/products/page.tsx` เฉย ๆ ไม่ได้ header/footer ของหนังสืออัตโนมัติ ตัวอย่างมีวิธีใช้ layout ร่วมให้ด้วย
 
 ## 11. เปลี่ยนฐานข้อมูล

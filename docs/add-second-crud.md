@@ -42,6 +42,65 @@ npm run prisma:push
 
 ## 3. สร้างไฟล์ Backend สำหรับสินค้า
 
+### ใช้ Nest CLI สร้างโครงอัตโนมัติ
+
+เลือกได้สองทาง: **สร้างไฟล์เองตามตัวอย่างถัดไป** หรือ **ให้ CLI สร้างโครงแล้วแก้เนื้อหา** ไม่ต้องสร้างซ้ำสองรอบ คำสั่งต่อไปนี้รันใน Backend ที่ npm ci แล้ว (เครื่องแล็ปใช้ npx ปกติ ถ้าบล็อกใช้ npx.cmd)
+
+เริ่มจากดูตัวอย่างผลโดยไม่เขียนไฟล์:
+
+```powershell
+npx nest g resource product --type rest --crud --no-spec --dry-run
+```
+
+สร้างจริงโดยเอา dry-run ออก:
+
+```powershell
+npx nest g resource product --type rest --crud --no-spec
+```
+
+คำสั่งนี้ระบุ REST/CRUD ไว้แล้ว จึงไม่ต้องเลือกจากเมนู หากใช้แบบสั้น `npx nest g resource product` แล้วมีคำถาม ให้เลือก REST API และตอบ Yes สำหรับ Generate CRUD entry points (แบบสั้นจะสร้างไฟล์ทดสอบตามค่าเริ่มต้นด้วย)
+
+โครงที่ได้จากคำสั่งระบุ --no-spec:
+
+```text
+src/product/
+├── product.controller.ts
+├── product.service.ts
+├── product.module.ts
+├── dto/
+│   ├── create-product.dto.ts
+│   └── update-product.dto.ts
+└── entities/
+    └── product.entity.ts
+```
+
+CLI เพิ่ม ProductModule ใน `src/app.module.ts` ของ Backend นี้ให้ด้วย ตรวจว่ามีแล้วก่อนเพิ่มเองอีกครั้ง ถ้าโฟลเดอร์ product มีไฟล์อยู่แล้วไม่ควรรันซ้ำ ใช้ไฟล์เดิมหรือเลือกชื่อ resource ที่ยังไม่มี
+
+ถ้าต้องการเฉพาะ class ของ Entity โดยยังไม่มีไฟล์นั้น:
+
+```powershell
+npx nest g class product/entities/product.entity --flat --no-spec
+```
+
+จะได้ `src/product/entities/product.entity.ts` เป็น class เปล่า ให้ตรวจชื่อ class ที่ได้หากนำไป import ส่วนโครง resource สร้างไฟล์นี้ให้อยู่แล้ว ไม่ต้องสั่งซ้ำ `--flat` ป้องกันการสร้างโฟลเดอร์ซ้อน และ `--no-spec` ไม่สร้างไฟล์ทดสอบอัตโนมัติ
+
+**Prisma model กับ Nest Entity คนละหน้าที่:** ในโปรเจกต์นี้ schema.prisma เป็นตัวกำหนด DB ส่วน entities/*.entity.ts เป็น class ฝั่งโค้ด อาจใช้บอกโครงสร้างผลลัพธ์ แต่ไม่สร้างตารางหรือเชื่อม Prisma ให้ ไม่ต้องทำ Entity ซ้ำทุกฟิลด์เพื่อให้ Prisma บันทึกได้
+
+หลัง generate resource ยังต้องทำต่อ:
+
+1. เพิ่ม model และ generate/push ตามข้อ 2 เพราะ CLI ไม่แก้ schema ให้
+2. แก้ service ให้ใช้ Prisma แทนข้อความตัวอย่างที่ CLI สร้าง
+3. แก้ DTO/controller ให้รับฟิลด์ที่ต้องการ และ import PrismaModule ใน ProductModule
+4. เพิ่มหน้าเว็บ/API ฝั่ง Frontend ตามข้อ 4 เป็นต้นไป
+
+**ถ้าต้องการใช้โค้ดถัดไปแบบคัดลอกตรง ๆ หลังสร้างด้วย CLI:** ให้สร้าง `product.dto.ts` เพิ่มตามตัวอย่าง แล้วแทนเนื้อหา controller/service/module ที่ CLI สร้างด้วยตัวอย่างในเอกสารนี้ DTO ใน dto/ และ entity ที่ generator สร้างจะไม่ได้ถูกใช้ในแนวทางนี้ สามารถเก็บไว้ศึกษาได้ และไม่เพิ่ม ProductModule ใน AppModule ซ้ำ
+
+อีกทางคือเก็บโครง CLI เดิม แล้วเติมฟิลด์ใน CreateProductDto/UpdateProductDto และปรับโค้ดตัวอย่างให้ import/type ตรงกับสองชื่อนี้ แทน ProductDto ตัวเดียว อย่าคัดลอกสลับชื่อโดยไม่แก้ import
+
+### สร้างไฟล์เองตามตัวอย่าง
+
+หากไม่ใช้ CLI ให้สร้างไฟล์ตามขั้นตอนด้านล่างได้เลย ผลสุดท้ายยังทำ CRUD สินค้าได้เหมือนกัน ตัวอย่างนี้ใช้ ProductDto ร่วมสำหรับเพิ่ม/แก้ จึงมีโครง DTO ต่างจาก generator เล็กน้อย
+
 ### `src/product/product.dto.ts` — รูปร่างข้อมูลที่รับ
 
 สร้างโฟลเดอร์ `src/product` แล้วสร้างไฟล์:
